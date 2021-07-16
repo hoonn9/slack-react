@@ -11,3 +11,10 @@ export type IWorkspace = {
   url: string;
   OwnerId: number;
 };
+
+export interface IChannel {
+  id: number;
+  name: string;
+  private: boolean;
+  WorkspaceId: number;
+}

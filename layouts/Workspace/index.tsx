@@ -26,16 +26,22 @@ import { Link, Route, Switch } from 'react-router-dom';
 import useSWR from 'swr';
 import gravatar from 'gravatar';
 import Menu from '@components/Menu';
+import WorkspaceList from '@components/WorkspaceList';
 
 const Workspace: VFC = () => {
   const { data: userData, error, revalidate, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
-  const { data: workspacesData } = useSWR<IWorkspace[] | false>('/api/workspaces', fetcher, {
-    dedupingInterval: 2000, // 2초
-  });
+  const { data: workspacesData, revalidate: workspaceRevalidate } = useSWR<IWorkspace[] | false>(
+    '/api/workspaces',
+    fetcher,
+    {
+      dedupingInterval: 2000, // 2초
+    },
+  );
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
+
   const onLogout = useCallback(() => {
     axios
       .post('/api/users/logout', null, {
@@ -55,7 +61,12 @@ const Workspace: VFC = () => {
     setShowUserMenu((prev) => !prev);
   }, []);
 
-  const onClickCreateWorkspace = useCallback(() => {}, []);
+  const onCloseModal = useCallback(() => {
+    // setShowCreateWorkspaceModal(false);
+    // setShowCreateChannelModal(false);
+    // setShowInviteWorkspaceModal(false);
+    // setShowInviteChannelModal(false);
+  }, []);
 
   const toggleWorkspaceModal = useCallback(() => {}, []);
   const onClickInviteWorkspace = useCallback(() => {}, []);
@@ -88,23 +99,13 @@ const Workspace: VFC = () => {
         </RightMenu>
       </Header>
       <WorkspaceWrapper>
-        <Workspaces>
-          {workspacesData &&
-            workspacesData.map((ws) => {
-              return (
-                <Link key={ws.id} to={`/workspace/${123}/channel/일반`}>
-                  <WorkspaceButton>{ws.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
-                </Link>
-              );
-            })}
-          <AddButton onClick={onClickCreateWorkspace}>+</AddButton>
-        </Workspaces>
+        <WorkspaceList list={workspacesData || []} revalidate={workspaceRevalidate} />
         <Channels>
           <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
           <MenuScroll>
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
               <WorkspaceModal>
-                <h2>Sleact</h2>
+                <h2>Slack</h2>
                 <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
                 <button onClick={onClickAddChannel}>채널 만들기</button>
                 <button onClick={onLogout}>로그아웃</button>
