@@ -15,20 +15,19 @@ import {
   Workspaces,
   WorkspaceWrapper,
 } from '@layouts/Workspace/styles';
-import loadable from '@loadable/component';
-import { Button, Input, Label } from '@pages/SignUp/styles';
 import { IUser, IWorkspace } from '@typings/api';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
 import React, { VFC, useCallback, useState, useEffect } from 'react';
 import { Redirect, useParams } from 'react-router';
-import { Link, Route, Switch } from 'react-router-dom';
 import useSWR from 'swr';
 import gravatar from 'gravatar';
 import Menu from '@components/Menu';
 import WorkspaceList from '@components/WorkspaceList';
+import { useWorkspace, WorkspaceContextProvider } from '@contexts/WorkspaceContext';
 
 const Workspace: VFC = () => {
+  const { workspace } = useWorkspace();
   const { data: userData, error, revalidate, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
@@ -72,7 +71,6 @@ const Workspace: VFC = () => {
   const onClickInviteWorkspace = useCallback(() => {}, []);
   const onClickAddChannel = useCallback(() => {}, []);
 
-  console.log(userData);
   if (!userData) {
     return <Redirect to="/login" />;
   }
@@ -101,7 +99,7 @@ const Workspace: VFC = () => {
       <WorkspaceWrapper>
         <WorkspaceList list={workspacesData || []} revalidate={workspaceRevalidate} />
         <Channels>
-          <WorkspaceName onClick={toggleWorkspaceModal}>Sleact</WorkspaceName>
+          <WorkspaceName onClick={toggleWorkspaceModal}>{workspace?.name || ''}</WorkspaceName>
           <MenuScroll>
             <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
               <WorkspaceModal>

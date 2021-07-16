@@ -1,4 +1,5 @@
 import CreateWorkspaceModal from '@components/CreateWorkspaceModal';
+import { useWorkspace } from '@contexts/WorkspaceContext';
 import { AddButton, WorkspaceButton, Workspaces } from '@layouts/Workspace/styles';
 import { IWorkspace } from '@typings/api';
 import axios from 'axios';
@@ -12,6 +13,7 @@ interface Props {
 }
 
 const WorkspaceList: VFC<Props> = ({ list, revalidate }) => {
+  const { setWorkspace } = useWorkspace();
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
 
   const onClickCreateWorkspace = useCallback(() => {
@@ -48,7 +50,11 @@ const WorkspaceList: VFC<Props> = ({ list, revalidate }) => {
         {list &&
           list.map((workspace) => {
             return (
-              <Link key={workspace.id} to={`/workspace/${workspace.url}/channel/일반`}>
+              <Link
+                key={workspace.id}
+                to={`/workspace/${workspace.url}/channel/일반`}
+                onClick={() => setWorkspace(workspace)}
+              >
                 <WorkspaceButton>{workspace.name.slice(0, 1).toUpperCase()}</WorkspaceButton>
               </Link>
             );
