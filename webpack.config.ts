@@ -4,7 +4,6 @@ import webpack from 'webpack';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
-// import { BundleAnalyzerPlugin } from 'webpack-bundle-analyzer';
 
 // development or production
 const isDevelopment = process.env.NODE_ENV !== 'production';
@@ -14,7 +13,7 @@ interface Configuration extends WebpackConfiguration {
 }
 
 const config: Configuration = {
-  name: 'sleact',
+  name: 'slack',
   mode: isDevelopment ? 'development' : 'production',
   devtool: !isDevelopment ? 'hidden-source-map' : 'eval',
   resolve: {

@@ -9,28 +9,28 @@ import useSWR from 'swr';
 const LogIn = () => {
   const { data, error, revalidate, mutate } = useSWR('/api/users', fetcher);
 
-  console.log(data);
+  console.log(data, error);
   const [logInError, setLogInError] = useState(false);
   const [email, onChangeEmail] = useInput('');
   const [password, onChangePassword] = useInput('');
+
   const onSubmit = useCallback(
-    (e) => {
+    async (e) => {
       e.preventDefault();
       setLogInError(false);
-      axios
-        .post(
+      try {
+        const res = await axios.post(
           '/api/users/login',
           { email, password },
           {
             withCredentials: true,
           },
-        )
-        .then((response) => {
-          revalidate();
-        })
-        .catch((error) => {
-          setLogInError(error.response?.data?.statusCode === 401);
-        });
+        );
+        revalidate();
+      } catch (error) {
+        console.log(error.response);
+        setLogInError(error.response?.status === 401);
+      }
     },
     [email, password],
   );
@@ -51,7 +51,7 @@ const LogIn = () => {
 
   return (
     <div id="container">
-      <Header>Sleact</Header>
+      <Header>Slack</Header>
       <Form onSubmit={onSubmit}>
         <Label id="email-label">
           <span>이메일 주소</span>
