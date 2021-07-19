@@ -5,6 +5,10 @@ export type IUser = {
   Workspaces: IWorkspace[];
 };
 
+export type IUserWithOnline = {
+  online: boolean;
+} & IUser;
+
 export type IWorkspace = {
   id: number;
   name: string;
@@ -17,4 +21,24 @@ export interface IChannel {
   name: string;
   private: boolean;
   WorkspaceId: number;
+}
+
+export interface IChat {
+  id: number;
+  UserId: number;
+  User: IUser;
+  content: string;
+  createdAt: Date;
+  ChannelId: number;
+  Channel: IChannel;
+}
+
+export interface IDM {
+  id: number;
+  SenderId: number;
+  Sender: IUser;
+  ReceiverId: number;
+  Receiver: IUser;
+  content: string;
+  createdAt: Date;
 }

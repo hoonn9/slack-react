@@ -3,8 +3,8 @@ import { useWorkspace } from '@contexts/WorkspaceContext';
 import { AddButton, WorkspaceButton, Workspaces } from '@layouts/Workspace/styles';
 import { IWorkspace } from '@typings/api';
 import axios from 'axios';
-import React, { useCallback, useState, VFC } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useCallback, useEffect, useState, VFC } from 'react';
+import { Link, useHistory } from 'react-router-dom';
 import { toast } from 'react-toastify';
 
 interface Props {
@@ -13,6 +13,7 @@ interface Props {
 }
 
 const WorkspaceList: VFC<Props> = ({ list, revalidate }) => {
+  const history = useHistory();
   const { setWorkspace } = useWorkspace();
   const [showCreateWorkspaceModal, setShowCreateWorkspaceModal] = useState(false);
 
@@ -43,6 +44,15 @@ const WorkspaceList: VFC<Props> = ({ list, revalidate }) => {
       toast.error(error.response?.data, { position: 'bottom-center' });
     }
   }, []);
+
+  useEffect(() => {
+    if (history.location.pathname.split('/').length > 2) {
+      const workspace = list.find((wp) => wp.url === history.location.pathname.split('/')[2]);
+      if (workspace) {
+        setWorkspace(workspace);
+      }
+    }
+  }, [list, history.location]);
 
   return (
     <>

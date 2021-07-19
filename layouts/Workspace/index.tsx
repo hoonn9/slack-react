@@ -1,75 +1,59 @@
-import useInput from '@hooks/useInput';
-import {
-  AddButton,
-  Channels,
-  Chats,
-  Header,
-  LogOutButton,
-  MenuScroll,
-  ProfileImg,
-  ProfileModal,
-  RightMenu,
-  WorkspaceButton,
-  WorkspaceModal,
-  WorkspaceName,
-  Workspaces,
-  WorkspaceWrapper,
-} from '@layouts/Workspace/styles';
+import { Chats, WorkspaceWrapper } from '@layouts/Workspace/styles';
 import { IUser, IWorkspace } from '@typings/api';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
-import React, { VFC, useCallback, useState, useEffect } from 'react';
-import { Redirect, useParams } from 'react-router';
+import React, { VFC, useCallback, useEffect } from 'react';
+import { Redirect, Route, Switch, useHistory } from 'react-router';
 import useSWR from 'swr';
-import gravatar from 'gravatar';
-import Menu from '@components/Menu';
 import WorkspaceList from '@components/WorkspaceList';
-import { useWorkspace, WorkspaceContextProvider } from '@contexts/WorkspaceContext';
+import Channel from '@pages/Channel';
+import Header from '@components/Header';
+import { toast } from 'react-toastify';
+import WorkspaceChannels from '@components/WorkspaceChannels';
+import DirectMessage from '@pages/DirectMessage';
 
 const Workspace: VFC = () => {
-  const { workspace } = useWorkspace();
-  const { data: userData, error, revalidate, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
-    dedupingInterval: 2000, // 2초
+  const history = useHistory();
+  const { data: userData, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
+    dedupingInterval: 2000,
   });
   const { data: workspacesData, revalidate: workspaceRevalidate } = useSWR<IWorkspace[] | false>(
     '/api/workspaces',
     fetcher,
     {
-      dedupingInterval: 2000, // 2초
+      dedupingInterval: 2000,
     },
   );
-  const [showUserMenu, setShowUserMenu] = useState(false);
-  const [showWorkspaceModal, setShowWorkspaceModal] = useState(false);
 
-  const onLogout = useCallback(() => {
-    axios
-      .post('/api/users/logout', null, {
+  const onLogout = useCallback(async () => {
+    try {
+      await axios.post('/api/users/logout', null, {
         withCredentials: true,
-      })
-      .then(() => {
-        mutate(false, false);
       });
+      mutate(false, false);
+    } catch (error) {
+      console.dir(error);
+      toast.error(error.response?.data, { position: 'bottom-center' });
+    }
   }, []);
 
-  const onCloseUserProfile = useCallback((e) => {
-    e.stopPropagation();
-    setShowUserMenu(false);
+  const workspaceHistory = useCallback(async () => {
+    try {
+      const { data } = await axios.get('/api/users/history', {
+        withCredentials: true,
+      });
+      if (data) {
+        history.push(`/workspace/${data.url}/channels/${data.channel.name}`);
+      }
+    } catch (error) {
+      console.dir(error);
+      toast.error(error.response?.data, { position: 'bottom-center' });
+    }
   }, []);
 
-  const onClickUserProfile = useCallback(() => {
-    setShowUserMenu((prev) => !prev);
+  useEffect(() => {
+    workspaceHistory();
   }, []);
-
-  const onCloseModal = useCallback(() => {
-    // setShowCreateWorkspaceModal(false);
-    // setShowCreateChannelModal(false);
-    // setShowInviteWorkspaceModal(false);
-    // setShowInviteChannelModal(false);
-  }, []);
-
-  const toggleWorkspaceModal = useCallback(() => {}, []);
-  const onClickInviteWorkspace = useCallback(() => {}, []);
-  const onClickAddChannel = useCallback(() => {}, []);
 
   if (!userData) {
     return <Redirect to="/login" />;
@@ -77,48 +61,16 @@ const Workspace: VFC = () => {
 
   return (
     <div>
-      <Header>
-        <RightMenu>
-          <span onClick={onClickUserProfile}>
-            <ProfileImg src={gravatar.url(userData.email, { s: '28px', d: 'retro' })} alt={userData.nickname} />
-            {showUserMenu && (
-              <Menu style={{ right: 0, top: 38 }} show={showUserMenu} onCloseModal={onCloseUserProfile}>
-                <ProfileModal>
-                  <img src={gravatar.url(userData.nickname, { s: '36px', d: 'retro' })} alt={userData.nickname} />
-                  <div>
-                    <span id="profile-name">{userData.nickname}</span>
-                    <span id="profile-active">Active</span>
-                  </div>
-                </ProfileModal>
-                <LogOutButton onClick={onLogout}>로그아웃</LogOutButton>
-              </Menu>
-            )}
-          </span>
-        </RightMenu>
-      </Header>
+      <Header onLogout={onLogout} />
       <WorkspaceWrapper>
         <WorkspaceList list={workspacesData || []} revalidate={workspaceRevalidate} />
-        <Channels>
-          <WorkspaceName onClick={toggleWorkspaceModal}>{workspace?.name || ''}</WorkspaceName>
-          <MenuScroll>
-            <Menu show={showWorkspaceModal} onCloseModal={toggleWorkspaceModal} style={{ top: 95, left: 80 }}>
-              <WorkspaceModal>
-                <h2>Slack</h2>
-                <button onClick={onClickInviteWorkspace}>워크스페이스에 사용자 초대</button>
-                <button onClick={onClickAddChannel}>채널 만들기</button>
-                <button onClick={onLogout}>로그아웃</button>
-              </WorkspaceModal>
-            </Menu>
-            {/* <ChannelList />
-            <DMList /> */}
-          </MenuScroll>
-        </Channels>
-        {/* <Chats>
+        <WorkspaceChannels onLogout={onLogout} />
+        <Chats>
           <Switch>
             <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
             <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
           </Switch>
-        </Chats> */}
+        </Chats>
       </WorkspaceWrapper>
     </div>
   );

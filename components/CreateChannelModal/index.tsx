@@ -20,16 +20,16 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
   const { data: userData, error, revalidate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000, // 2초
   });
-  const { data: channelData, mutate, revalidate: revalidateChannel } = useSWR<IChannel[]>(
-    userData ? `/api/workspaces/${workspace}/channels` : null,
+  const { revalidate: revalidateChannel } = useSWR<IChannel[]>(
+    userData && workspace !== 'slack' ? `/api/workspaces/${workspace}/channels` : null,
     fetcher,
   );
 
   const onCreateChannel = useCallback(
-    (e) => {
-      e.preventDefault();
-      axios
-        .post(
+    async (event) => {
+      event.preventDefault();
+      try {
+        await axios.post(
           `/api/workspaces/${workspace}/channels`,
           {
             name: newChannel,
@@ -37,16 +37,14 @@ const CreateChannelModal: VFC<Props> = ({ show, onCloseModal, setShowCreateChann
           {
             withCredentials: true,
           },
-        )
-        .then((response) => {
-          setShowCreateChannelModal(false);
-          revalidateChannel();
-          setNewChannel('');
-        })
-        .catch((error) => {
-          console.dir(error);
-          toast.error(error.response?.data, { position: 'bottom-center' });
-        });
+        );
+        setShowCreateChannelModal(false);
+        revalidateChannel();
+        setNewChannel('');
+      } catch (error) {
+        console.dir(error);
+        toast.error(error.response?.data, { position: 'bottom-center' });
+      }
     },
     [newChannel],
   );
