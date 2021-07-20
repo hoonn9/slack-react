@@ -3,7 +3,7 @@ import { IUser, IWorkspace } from '@typings/api';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
 import React, { VFC, useCallback, useEffect } from 'react';
-import { Redirect, Route, Switch, useHistory } from 'react-router';
+import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router';
 import useSWR from 'swr';
 import WorkspaceList from '@components/WorkspaceList';
 import Channel from '@pages/Channel';
@@ -14,6 +14,8 @@ import DirectMessage from '@pages/DirectMessage';
 
 const Workspace: VFC = () => {
   const history = useHistory();
+  const location = useLocation();
+
   const { data: userData, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
   });
@@ -39,12 +41,20 @@ const Workspace: VFC = () => {
 
   const workspaceHistory = useCallback(async () => {
     try {
-      const { data } = await axios.get('/api/users/history', {
-        withCredentials: true,
-      });
-      if (data) {
-        history.push(`/workspace/${data.url}/channels/${data.channel.name}`);
-      }
+      // const { data } = await axios.get('/api/users/history', {
+      //   withCredentials: true,
+      // });
+      // if (data) {
+      //   history.push({
+      //     pathname: `/workspace/${data.url}/channels/${data.channel.name}`,
+      //     state: {
+      //       url: data.url,
+      //       channel: {
+      //         name: data.channel.name,
+      //       },
+      //     },
+      //   });
+      // }
     } catch (error) {
       console.dir(error);
       toast.error(error.response?.data, { position: 'bottom-center' });

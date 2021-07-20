@@ -4,9 +4,15 @@ import webpack from 'webpack';
 import ForkTsCheckerWebpackPlugin from 'fork-ts-checker-webpack-plugin';
 import { Configuration as WebpackConfiguration } from 'webpack';
 import { Configuration as WebpackDevServerConfiguration } from 'webpack-dev-server';
+import dotenv from 'dotenv';
 
-// development or production
 const isDevelopment = process.env.NODE_ENV !== 'production';
+
+dotenv.config({
+  path: process.env.NODE_ENV === 'development' ? '.development.env' : '.production.env',
+});
+
+console.log(process.env.NODE_ENV);
 
 interface Configuration extends WebpackConfiguration {
   devServer?: WebpackDevServerConfiguration;
@@ -75,6 +81,9 @@ const config: Configuration = {
     }),
     // process.NODE_ENV 사용 가능하게 만들어줌 (frontend 에서도)
     new webpack.EnvironmentPlugin({ NODE_ENV: isDevelopment ? 'development' : 'production' }),
+    new webpack.DefinePlugin({
+      API_URL: JSON.stringify(process.env.API_URL),
+    }),
   ],
   output: {
     path: path.join(__dirname, 'dist'),

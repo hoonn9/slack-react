@@ -1,8 +1,15 @@
 import { IDM, IChat } from '@typings/api.d';
 import dayjs from 'dayjs';
 
-export default function makeSection(chatList: (IDM | IChat)[]) {
-  const sections: { [key: string]: (IDM | IChat)[] } = {};
+/**
+ * key is date
+ */
+type Section = {
+  [key: string]: (IDM | IChat)[];
+};
+
+const makeSection = (chatList: (IDM | IChat)[]) => {
+  const sections: Section = {};
   chatList.forEach((chat) => {
     const monthDate = dayjs(chat.createdAt).format('YYYY-MM-DD');
     if (Array.isArray(sections[monthDate])) {
@@ -12,4 +19,6 @@ export default function makeSection(chatList: (IDM | IChat)[]) {
     }
   });
   return sections;
-}
+};
+
+export default makeSection;
