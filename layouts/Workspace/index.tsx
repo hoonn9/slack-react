@@ -3,7 +3,7 @@ import { IUser, IWorkspace } from '@typings/api';
 import fetcher from '@utils/fetcher';
 import axios from 'axios';
 import React, { VFC, useCallback, useEffect } from 'react';
-import { Redirect, Route, Switch, useHistory, useLocation } from 'react-router';
+import { Redirect, Route, Switch, useHistory, useLocation, useParams } from 'react-router';
 import useSWR from 'swr';
 import WorkspaceList from '@components/WorkspaceList';
 import Channel from '@pages/Channel';
@@ -15,6 +15,7 @@ import DirectMessage from '@pages/DirectMessage';
 const Workspace: VFC = () => {
   const history = useHistory();
   const location = useLocation();
+  const { workspace } = useParams<{ workspace?: string }>();
 
   const { data: userData, mutate } = useSWR<IUser | false>('/api/users', fetcher, {
     dedupingInterval: 2000,
@@ -75,12 +76,14 @@ const Workspace: VFC = () => {
       <WorkspaceWrapper>
         <WorkspaceList list={workspacesData || []} revalidate={workspaceRevalidate} />
         <WorkspaceChannels onLogout={onLogout} />
-        <Chats>
-          <Switch>
-            <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
-            <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
-          </Switch>
-        </Chats>
+        {workspace && workspace !== 'slack' && (
+          <Chats>
+            <Switch>
+              <Route path="/workspace/:workspace/channel/:channel" component={Channel} />
+              <Route path="/workspace/:workspace/dm/:id" component={DirectMessage} />
+            </Switch>
+          </Chats>
+        )}
       </WorkspaceWrapper>
     </div>
   );

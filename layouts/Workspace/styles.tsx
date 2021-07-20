@@ -74,7 +74,7 @@ export const WorkspaceName = styled.button`
   border-top: 1px solid rgb(82, 38, 83);
   border-bottom: 1px solid rgb(82, 38, 83);
   font-weight: 900;
-  font-size: 24px;
+  font-size: 23px;
   background: transparent;
   text-overflow: ellipsis;
   overflow: hidden;
