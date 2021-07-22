@@ -1,4 +1,4 @@
-import React, { useCallback, forwardRef, MutableRefObject } from 'react';
+import React, { useCallback, forwardRef, MutableRefObject, memo } from 'react';
 import { IDM, IChat } from '@typings/api.d';
 import { Scrollbars } from 'react-custom-scrollbars';
 import Chat from '@components/Chat';
@@ -46,4 +46,4 @@ const ChatList = forwardRef<Scrollbars, Props>(({ chatSections, setSize, isReach
   );
 });
 
-export default ChatList;
+export default memo(ChatList);

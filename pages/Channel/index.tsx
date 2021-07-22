@@ -8,6 +8,7 @@ import { IChannel, IChat, IUser } from '@typings/api.d';
 import fetcher from '@utils/fetcher';
 import makeSection from '@utils/makeSection';
 import axios from 'axios';
+import { cloneDeep } from 'lodash';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import Scrollbars from 'react-custom-scrollbars';
 import { useParams } from 'react-router';
@@ -78,19 +79,28 @@ const Channel = () => {
 
   const onMessage = useCallback(
     async (data: IChat) => {
-      console.log(data);
       if (data.Channel.name === channel && (data.content.startsWith('uploads') || data.UserId !== myData?.id)) {
         await mutateChat((chatData) => {
-          console.log(chatData);
-          chatData?.[0].unshift(data);
-          return chatData;
+          const clone = cloneDeep(chatData || []);
+          clone[0] = [
+            {
+              id: data.id,
+              content: data.content,
+              UserId: data.UserId,
+              User: data.User,
+              ChannelId: data.ChannelId,
+              Channel: data.Channel,
+              createdAt: data.createdAt,
+            },
+            ...clone[0],
+          ];
+          return clone;
         }, false);
         if (scrollbarRef.current) {
           if (
             scrollbarRef.current.getScrollHeight() <
             scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
           ) {
-            console.log('scrollToBottom!', scrollbarRef.current?.getValues());
             setTimeout(() => {
               scrollbarRef.current?.scrollToBottom();
             }, 50);

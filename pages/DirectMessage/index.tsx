@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState, VFC } from 'react';
 import ChatBox from '@components/ChatBox';
 import ChatList from '@components/ChatList';
 import useInput from '@hooks/useInput';
@@ -12,8 +12,10 @@ import gravatar from 'gravatar';
 import Scrollbars from 'react-custom-scrollbars';
 import { useParams } from 'react-router';
 import useSWR, { useSWRInfinite } from 'swr';
+import { cloneDeep } from 'lodash';
 
-const DirectMessage = () => {
+interface Props {}
+const DirectMessage: VFC<Props> = () => {
   const { workspace, id } = useParams<{ workspace: string; id: string }>();
   const { data: userData } = useSWR(`/api/workspaces/${workspace}/users/${id}`, fetcher);
   const { data: myData } = useSWR('/api/users', fetcher);
@@ -65,8 +67,21 @@ const DirectMessage = () => {
   const onMessage = useCallback(async (data: IDM) => {
     if (data.SenderId === Number(id) && myData.id !== Number(id)) {
       await mutateChat((chatData) => {
-        chatData?.[0].unshift(data);
-        return chatData;
+        const clone = cloneDeep(chatData || []);
+        clone[0] = [
+          {
+            id: data.id,
+            content: data.content,
+            SenderId: data.SenderId,
+            Sender: data.Sender,
+            ReceiverId: data.ReceiverId,
+            Receiver: data.Receiver,
+            createdAt: data.createdAt,
+          },
+          ...clone[0],
+        ];
+
+        return clone;
       }, false);
 
       if (scrollbarRef.current) {
@@ -74,7 +89,6 @@ const DirectMessage = () => {
           scrollbarRef.current.getScrollHeight() <
           scrollbarRef.current.getClientHeight() + scrollbarRef.current.getScrollTop() + 150
         ) {
-          console.log('scrollToBottom!', scrollbarRef.current?.getValues());
           setTimeout(() => {
             scrollbarRef.current?.scrollToBottom();
           }, 50);
@@ -143,11 +157,11 @@ const DirectMessage = () => {
     setDragOver(false);
   }, []);
 
+  const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
+  console.log('chatSections', chatSections);
   if (!userData || !myData) {
     return null;
   }
-
-  const chatSections = makeSection(chatData ? chatData.flat().reverse() : []);
 
   return (
     <Container onDrop={onDrop} onDragOver={onDragOver} onDragLeave={onDragLeave}>
@@ -162,4 +176,4 @@ const DirectMessage = () => {
   );
 };
 
-export default DirectMessage;
+export default memo(DirectMessage);
